@@ -1,13 +1,13 @@
 package domain.board
 
+import domain.game.event.ShotResult
 import domain.ship.ShipImpl
 import domain.value.Coords
-import domain.game.event.ShotResult
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 
 class BoardTest {
-
     @Test
     fun `shoot should return HIT`() {
         val ship = ShipImpl(setOf(Coords(1, 1)))

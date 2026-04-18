@@ -1,11 +1,10 @@
 package domain.ship
 
 import domain.value.Coords
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 
 class ShipTest {
-
     @Test
     fun `hit should return true when coords match`() {
         val ship = ShipImpl(setOf(Coords(1, 1)))
