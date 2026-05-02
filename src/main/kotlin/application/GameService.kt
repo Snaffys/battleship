@@ -1,9 +1,10 @@
 package application
 
-import domain.game.Game
-import domain.model.Player
 import domain.board.BoardImpl
+import domain.board.BoardUtils
+import domain.game.Game
 import domain.game.GameImpl
+import domain.model.Player
 import domain.ship.ShipImpl
 import domain.value.Coords
 
@@ -12,7 +13,7 @@ class GameService {
         player1: Player,
         player2: Player,
         ships1: List<ShipImpl>,
-        ships2: List<ShipImpl>
+        ships2: List<ShipImpl>,
     ): Game {
         val board1 = BoardImpl(ships1)
         val board2 = BoardImpl(ships2)
@@ -21,34 +22,41 @@ class GameService {
             player1,
             player2,
             board1,
-            board2
+            board2,
         )
     }
 
-    fun addShips(
-        placements: List<ShipPlacementRequest>
-    ): Pair<Boolean, List<ShipImpl>> {
-
+    fun addShips(placements: List<ShipPlacementRequest>): Pair<Boolean, List<ShipImpl>> {
         val ships = mutableListOf<ShipImpl>()
         val occupied = mutableSetOf<Coords>()
 
         for (p in placements) {
+            if (p.size <= 0) {
+                return false to emptyList()
+            }
 
             val coords = mutableSetOf<Coords>()
+            val direction = p.direction.uppercase()
 
             var i = 0
             while (i < p.size) {
-                val c = when (p.direction) {
-                    "H" -> Coords(p.x + i, p.y)
-                    "V" -> Coords(p.x, p.y + i)
-                    else -> return false to emptyList()
+                val c =
+                    when (direction) {
+                        "H" -> Coords(p.x + i, p.y)
+                        "V" -> Coords(p.x, p.y + i)
+                        else -> return false to emptyList()
+                    }
+
+                if (BoardUtils.isOutOfBounds(c)) {
+                    return false to emptyList()
                 }
+
                 coords.add(c)
                 i++
             }
 
             for (c in coords) {
-                if (!canPlace(c.x, c.y, occupied)) {
+                if (!notHovering(c.x, c.y, occupied)) {
                     return false to emptyList()
                 }
             }
@@ -60,7 +68,11 @@ class GameService {
         return true to ships
     }
 
-    private fun canPlace(x: Int, y: Int, occupied: Set<Coords>): Boolean {
+    private fun notHovering(
+        x: Int,
+        y: Int,
+        occupied: Set<Coords>,
+    ): Boolean {
         var dx = -1
         while (dx <= 1) {
             var dy = -1
