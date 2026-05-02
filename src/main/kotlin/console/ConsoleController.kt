@@ -1,197 +1,81 @@
 package console
 
-import domain.model.Player
-import domain.game.Game
-import application.GameService
+import application.GameAdministrationService
 import application.PlayerService
-import domain.value.Coords
-import domain.ship.ShipImpl
-import domain.game.event.GameEvent
-import application.ShipPlacementRequest
 
-class ConsoleController {
-    val playerService = PlayerService()
-    val gameService = GameService()
+fun runBattleshipConsole() {
+    ConsoleController().run()
+}
 
-    private lateinit var player1: Player
-    private lateinit var player2: Player
-
+class ConsoleController(
+    private val playerService: PlayerService = PlayerService(),
+    private val administrationService: GameAdministrationService =
+        GameAdministrationService(playerService),
+) {
     fun run() {
-        val players = addPlayers()
-        val (p1, p2) = choosePlayers(players)
-        player1 = p1
-        player2 = p2
-
-        val shipSizes = listOf(4, 3, 3, 2, 2, 2, 1, 1, 1, 1)
-
-        val ships1 = placeShips(p1.nickname, shipSizes)
-        val ships2 = placeShips(p2.nickname, shipSizes)
-
-        val game = gameService.startGame(p1, p2, ships1, ships2)
-
-        gameLoop(game)
-    }
-
-    private fun addPlayers(): List<Player> {
-        println("Add players (or type 'start')")
+        println("Console administration mode")
+        println("Commands:")
+        println("  add <nickname>         - add player")
+        println("  list                   - list players")
+        println("  start <steps-file>     - process game steps file")
+        println("  help                   - show commands")
+        println("  exit                   - quit")
         while (true) {
-            val input = readlnOrNull()?.trim()
-
+            val input = readLine()?.trim()
             if (input.isNullOrBlank()) {
-                println("Empty input")
                 continue
             }
+            if (processCommand(input)) {
+                return
+            }
+        }
+    }
 
-            if (input == "start") {
+    fun processCommand(input: String): Boolean {
+        val parts = input.split(Regex("\\s+"), limit = 2)
+        val command = parts[0].lowercase()
+        when (command) {
+            "add" -> {
+                val nickname = parts.getOrNull(1)?.trim().orEmpty()
+                if (nickname.isEmpty()) {
+                    println("Usage: add <nickname>")
+                } else {
+                    val player = playerService.addPlayer(nickname)
+                    println("Added player: ${player.nickname}")
+                }
+            }
+            "list" -> {
                 val players = playerService.getAll()
-
-                if (players.size < 2) {
-                    println("Need at least 2 players to start game")
-                    continue
-                }
-
-                return players
-            }
-
-            playerService.addPlayer(input)
-            println("Added: $input")
-        }
-    }
-
-    private fun choosePlayers(players: List<Player>): Pair<Player, Player> {
-        println("Choose players:")
-        while (true) {
-            var i = 0
-            while (i < players.size) {
-                println(i.toString() + ": " + players[i].toString())
-                ++i
-            }
-
-            println("Player 1 index:")
-            val i1 = readlnOrNull()?.toIntOrNull()
-            if (i1 == null) {
-                println("Invalid input")
-                continue
-            }
-
-            println("Player 2 index:")
-            val i2 = readlnOrNull()?.toIntOrNull()
-            if (i2 == null) {
-                println("Invalid input")
-                continue
-            }
-
-            if (i1 == i2) {
-                println("Players must be different")
-                continue
-            }
-            if (i1 < 0 || i1 >= players.size || i2 < 0 || i2 >= players.size) {
-                println("Index out of range")
-                continue
-            }
-
-            return Pair(players[i1], players[i2])
-        }
-    }
-
-    private fun placeShips(name: String, shipSizes: List<Int>): List<ShipImpl> {
-        while (true) {
-            val placements = mutableListOf<ShipPlacementRequest>()
-            for (size in shipSizes) {
-                while (true) {
-                    println("$name place ship size $size (x y [H]orizontally/[V]ertically)")
-
-                    val input = readlnOrNull()
-                    if (input == null) {
-                        println("Invalid input")
-                        continue
-                    }
-
-                    val parts = input.split(" ")
-                    if (parts.size != 3) {
-                        println("Invalid format")
-                        continue
-                    }
-
-                    val x = parts[0].toIntOrNull()
-                    val y = parts[1].toIntOrNull()
-                    val dir = parts[2]
-
-                    if (x == null || y == null) {
-                        println("Invalid numbers")
-                        continue
-                    }
-
-                    placements.add(ShipPlacementRequest(x, y, dir, size))
-                    break
-                }
-            }
-
-            val (success, ships) = gameService.addShips(placements)
-            if (!success) {
-                println("Invalid ship placement, try again from start")
-                continue
-            }
-
-            return ships
-        }
-    }
-
-    private fun gameLoop(game: Game) {
-        println("Game started: ${player1.nickname} vs ${player2.nickname}")
-        print("${player1.nickname} ")
-        while (true) {
-            println("Enter coordinates (x y):")
-
-            val input = readlnOrNull()
-            if (input == null) {
-                println("Invalid input")
-                continue
-            }
-
-            val parts = input.split(" ")
-            if (parts.size != 2) {
-                println("Enter 2 numbers")
-                continue
-            }
-
-            val x = parts[0].toIntOrNull()
-            val y = parts[1].toIntOrNull()
-            if (x == null || y == null) {
-                println("Invalid numbers")
-                continue
-            }
-
-            val events = game.makeMove(Coords(x, y))
-
-            var finished = false
-
-            for (event in events) {
-                when (event) {
-                    is GameEvent.MoveMade -> {
-                        println("${event.playerNickname}: ${event.result}")
-                    }
-
-                    is GameEvent.PlayerSwitched -> {
-                        println("Next turn: ${event.nextPlayerNickname}")
-                    }
-
-                    is GameEvent.ShipSunk -> {
-                        println("Ship sunk!")
-                    }
-
-                    is GameEvent.GameFinished -> {
-                        println("Game ended!")
-                        println("Winner: ${event.winnerNickname}")
-                        finished = true
-                    }
-
-                    is GameEvent.InvalidMove -> {
-                        println("Invalid move: ${event.reason}")
+                if (players.isEmpty()) {
+                    println("No players yet")
+                } else {
+                    var i = 0
+                    while (i < players.size) {
+                        val player = players[i]
+                        println("${i + 1}. ${player.nickname}")
+                        ++i
                     }
                 }
             }
-            if (finished) break
+            "start" -> {
+                val path = parts.getOrNull(1)?.trim().orEmpty()
+                if (path.isEmpty()) {
+                    println("Usage: start <steps-file>")
+                } else {
+                    val result = administrationService.processStepsFile(path)
+                    for (line in result.logLines) {
+                        println(line)
+                    }
+                    println("")
+                    println("Next: add <nickname> | list | start <steps-file> | help | exit")
+                }
+            }
+            "help" -> {
+                println("Commands: add <nickname> | list | start <steps-file> | help | exit")
+            }
+            "exit" -> return true
+            else -> println("Unknown command. Type 'help'.")
         }
+        return false
     }
 }
