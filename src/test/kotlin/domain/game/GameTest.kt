@@ -11,13 +11,15 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class GameTest {
-    private val p1 = Player("1", "A")
-    private val p2 = Player("2", "B")
+    private val p1 = Player("A")
+    private val p2 = Player("B")
 
     private fun shipAt(
         x: Int,
         y: Int,
-    ) = ShipImpl(setOf(Coords(x, y)))
+    ): ShipImpl {
+        return ShipImpl(setOf(Coords(x, y)))
+    }
 
     @Test
     fun `move should register HIT`() {
@@ -31,7 +33,7 @@ class GameTest {
 
         val events = game.makeMove(Coords(2, 2))
 
-        val move = events.filterIsInstance<GameEvent.MoveMade>().first()
+        val move = events.first { it is GameEvent.MoveMade } as GameEvent.MoveMade
 
         assertEquals(ShotResult.HIT, move.result)
     }
@@ -48,9 +50,46 @@ class GameTest {
 
         val events = game.makeMove(Coords(0, 0))
 
-        assertTrue(
-            events.any { it is GameEvent.PlayerSwitched },
-        )
+        assertTrue(events.any { it is GameEvent.PlayerSwitched })
+    }
+
+    @Test
+    fun `HIT should not switch player`() {
+        val game =
+            GameImpl(
+                p1,
+                p2,
+                BoardImpl(emptyList()),
+                BoardImpl(listOf(shipAt(1, 1))),
+            )
+
+        val events = game.makeMove(Coords(1, 1))
+
+        var sawHit = false
+        for (e in events) {
+            if (e is GameEvent.MoveMade && e.result == ShotResult.HIT) {
+                sawHit = true
+                break
+            }
+        }
+        assertTrue(sawHit)
+        assertTrue(events.none { it is GameEvent.PlayerSwitched })
+    }
+
+    @Test
+    fun `out of bounds shot should be invalid move`() {
+        val game =
+            GameImpl(
+                p1,
+                p2,
+                BoardImpl(emptyList()),
+                BoardImpl(emptyList()),
+            )
+
+        val events = game.makeMove(Coords(10, 0))
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is GameEvent.InvalidMove)
     }
 
     @Test
@@ -67,9 +106,7 @@ class GameTest {
 
         val events = game.makeMove(Coords(1, 1))
 
-        assertTrue(
-            events.any { it is GameEvent.ShipSunk },
-        )
+        assertTrue(events.any { it is GameEvent.ShipSunk })
     }
 
     @Test
@@ -86,9 +123,7 @@ class GameTest {
 
         val events = game.makeMove(Coords(1, 1))
 
-        assertTrue(
-            events.any { it is GameEvent.GameFinished },
-        )
+        assertTrue(events.any { it is GameEvent.GameFinished })
     }
 
     @Test
@@ -105,8 +140,6 @@ class GameTest {
         game.makeMove(Coords(1, 1))
         val events = game.makeMove(Coords(1, 1))
 
-        assertTrue(
-            events.any { it is GameEvent.InvalidMove },
-        )
+        assertTrue(events.any { it is GameEvent.InvalidMove })
     }
 }

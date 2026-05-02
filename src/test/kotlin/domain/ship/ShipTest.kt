@@ -1,6 +1,8 @@
 package domain.ship
 
 import domain.value.Coords
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -31,5 +33,12 @@ class ShipTest {
         ship.hit(Coords(1, 2))
 
         assertTrue(ship.isSunk())
+    }
+
+    @Test
+    fun `getCells returns construction cells`() {
+        val cells = setOf(Coords(0, 0), Coords(1, 0))
+        val ship = ShipImpl(cells)
+        assertEquals(cells, ship.getCells())
     }
 }
