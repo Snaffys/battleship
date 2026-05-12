@@ -7,9 +7,7 @@ object BoardUtils {
     const val HEIGHT = 10
 
     fun isOutOfBounds(coords: Coords): Boolean {
-        return coords.x < 0 ||
-            coords.y < 0 ||
-            coords.x >= WIDTH ||
-            coords.y >= HEIGHT
+        return coords.x < 0 || coords.y < 0 ||
+            coords.x >= WIDTH || coords.y >= HEIGHT
     }
 }

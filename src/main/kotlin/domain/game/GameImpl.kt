@@ -17,18 +17,11 @@ class GameImpl(
 
     override fun makeMove(coords: Coords): List<GameEvent> {
         val events = mutableListOf<GameEvent>()
-
-        val opponentBoard =
-            if (currentPlayer == player1) {
-                board2
-            } else {
-                board1
-            }
+        val opponentBoard = opponentBoardForCurrentPlayer()
 
         if (BoardUtils.isOutOfBounds(coords)) {
             return listOf(GameEvent.InvalidMove("Shot is out of board bounds"))
         }
-
         if (opponentBoard.isAlreadyShot(coords)) {
             return listOf(GameEvent.InvalidMove("Already shot here"))
         }
@@ -36,19 +29,18 @@ class GameImpl(
         val sunkBefore = opponentBoard.getShips().count { it.isSunk() }
         val result = opponentBoard.shoot(coords)
 
-        events.add(
-            GameEvent.MoveMade(
-                coords = coords,
-                result = result,
-                playerNickname = currentPlayer.nickname,
-            ),
-        )
+        addMoveMadeEvent(events, coords, result)
+        addShipSunkEventIfNeeded(events, opponentBoard, sunkBefore)
+        addMissPlayerSwitchIfNeeded(events, result)
+        addGameFinishedIfAllShipsSunk(events, opponentBoard)
 
-        val sunkAfter = opponentBoard.getShips().count { it.isSunk() }
-        if (sunkAfter > sunkBefore) {
-            events.add(GameEvent.ShipSunk(currentPlayer.nickname))
-        }
+        return events
+    }
 
+    private fun addMissPlayerSwitchIfNeeded(
+        events: MutableList<GameEvent>,
+        result: ShotResult,
+    ) {
         if (result == ShotResult.MISS) {
             currentPlayer =
                 if (currentPlayer == player1) {
@@ -59,19 +51,55 @@ class GameImpl(
 
             events.add(
                 GameEvent.PlayerSwitched(
-                    nextPlayerNickname = currentPlayer.nickname,
+                    currentPlayer.nickname,
                 ),
             )
         }
+    }
 
+    private fun addGameFinishedIfAllShipsSunk(
+        events: MutableList<GameEvent>,
+        opponentBoard: Board,
+    ) {
         if (opponentBoard.allShipsSunk()) {
             events.add(
                 GameEvent.GameFinished(
-                    winnerNickname = currentPlayer.nickname,
+                    currentPlayer.nickname,
                 ),
             )
         }
+    }
 
-        return events
+    private fun opponentBoardForCurrentPlayer(): Board {
+        return if (currentPlayer == player1) {
+            board2
+        } else {
+            board1
+        }
+    }
+
+    private fun addMoveMadeEvent(
+        events: MutableList<GameEvent>,
+        coords: Coords,
+        result: ShotResult,
+    ) {
+        events.add(
+            GameEvent.MoveMade(
+                coords,
+                result,
+                currentPlayer.nickname,
+            ),
+        )
+    }
+
+    private fun addShipSunkEventIfNeeded(
+        events: MutableList<GameEvent>,
+        opponentBoard: Board,
+        sunkBefore: Int,
+    ) {
+        val sunkAfter = opponentBoard.getShips().count { it.isSunk() }
+        if (sunkAfter > sunkBefore) {
+            events.add(GameEvent.ShipSunk(currentPlayer.nickname))
+        }
     }
 }

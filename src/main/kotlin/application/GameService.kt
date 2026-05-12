@@ -36,23 +36,8 @@ class GameService {
             }
 
             val coords = mutableSetOf<Coords>()
-            val direction = p.direction.uppercase()
-
-            var i = 0
-            while (i < p.size) {
-                val c =
-                    when (direction) {
-                        "H" -> Coords(p.x + i, p.y)
-                        "V" -> Coords(p.x, p.y + i)
-                        else -> return false to emptyList()
-                    }
-
-                if (BoardUtils.isOutOfBounds(c)) {
-                    return false to emptyList()
-                }
-
-                coords.add(c)
-                i++
+            if (!fillCoordsForPlacement(p, coords)) {
+                return false to emptyList()
             }
 
             for (c in coords) {
@@ -66,6 +51,32 @@ class GameService {
         }
 
         return true to ships
+    }
+
+    private fun fillCoordsForPlacement(
+        placement: ShipPlacementRequest,
+        coords: MutableSet<Coords>,
+    ): Boolean {
+        val direction = placement.direction.uppercase()
+
+        var i = 0
+        while (i < placement.size) {
+            val c =
+                when (direction) {
+                    "H" -> Coords(placement.x + i, placement.y)
+                    "V" -> Coords(placement.x, placement.y + i)
+                    else -> return false
+                }
+
+            if (BoardUtils.isOutOfBounds(c)) {
+                return false
+            }
+
+            coords.add(c)
+            ++i
+        }
+
+        return true
     }
 
     private fun notHovering(

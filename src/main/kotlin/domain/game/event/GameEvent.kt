@@ -20,33 +20,25 @@ sealed class GameEvent {
         }
     }
 
-    data class PlayerSwitched(
-        val nextPlayerNickname: String,
-    ) : GameEvent() {
+    data class PlayerSwitched(val nextPlayerNickname: String) : GameEvent() {
         override fun output(): String {
             return "Turn switched to $nextPlayerNickname"
         }
     }
 
-    data class GameFinished(
-        val winnerNickname: String,
-    ) : GameEvent() {
+    data class GameFinished(val winnerNickname: String) : GameEvent() {
         override fun output(): String {
             return "Game finished. Winner: $winnerNickname"
         }
     }
 
-    data class ShipSunk(
-        val playerNickname: String,
-    ) : GameEvent() {
+    data class ShipSunk(val playerNickname: String) : GameEvent() {
         override fun output(): String {
             return "$playerNickname sunk a ship"
         }
     }
 
-    data class InvalidMove(
-        val reason: String,
-    ) : GameEvent() {
+    data class InvalidMove(val reason: String) : GameEvent() {
         override fun output(): String {
             return "Invalid move: $reason"
         }

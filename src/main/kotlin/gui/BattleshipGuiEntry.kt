@@ -52,6 +52,14 @@ private class BattleshipGuiScreen(
         val rootPanel = JPanel(BorderLayout())
         rootPanel.preferredSize = Dimension(340, 100)
 
+        rootPanel.add(buildAddPlayerPanel(), BorderLayout.NORTH)
+        rootPanel.add(JScrollPane(playersList), BorderLayout.CENTER)
+        rootPanel.add(buildStepsFilePanel(), BorderLayout.SOUTH)
+
+        return rootPanel
+    }
+
+    private fun buildAddPlayerPanel(): JPanel {
         val addPanel = JPanel(BorderLayout())
         val inputField = JTextField()
         val addBtn = JButton("Add player")
@@ -73,6 +81,10 @@ private class BattleshipGuiScreen(
             }
         }
 
+        return addPanel
+    }
+
+    private fun buildStepsFilePanel(): JPanel {
         val filePanel = JPanel(BorderLayout())
         val fileLabel = javax.swing.JLabel("Steps file:")
 
@@ -86,11 +98,7 @@ private class BattleshipGuiScreen(
         filePanel.add(filePathField, BorderLayout.CENTER)
         filePanel.add(processFileButton, BorderLayout.SOUTH)
 
-        rootPanel.add(addPanel, BorderLayout.NORTH)
-        rootPanel.add(JScrollPane(playersList), BorderLayout.CENTER)
-        rootPanel.add(filePanel, BorderLayout.SOUTH)
-
-        return rootPanel
+        return filePanel
     }
 
     private fun buildRight(): JPanel {
@@ -104,20 +112,21 @@ private class BattleshipGuiScreen(
         logArea.lineWrap = true
         logArea.wrapStyleWord = true
 
-        val logScroll =
-            JScrollPane(
-                logArea,
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER,
-            ).apply {
-                preferredSize = Dimension(560, 560)
-                minimumSize = Dimension(560, 400)
-            }
-
         panel.add(title, BorderLayout.NORTH)
-        panel.add(logScroll, BorderLayout.CENTER)
+        panel.add(buildLogScrollPane(), BorderLayout.CENTER)
 
         return panel
+    }
+
+    private fun buildLogScrollPane(): JScrollPane {
+        return JScrollPane(
+            logArea,
+            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER,
+        ).apply {
+            preferredSize = Dimension(560, 560)
+            minimumSize = Dimension(560, 400)
+        }
     }
 
     private fun processStepsFile() {

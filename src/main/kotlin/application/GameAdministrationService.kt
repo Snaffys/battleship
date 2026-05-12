@@ -6,9 +6,7 @@ import domain.model.Player
 import domain.value.Coords
 import java.io.File
 
-data class ProcessingResult(
-    val logLines: List<String>,
-)
+data class ProcessingResult(val logLines: List<String>)
 
 private data class AdminContext(
     val placementsByNickname: MutableMap<String, MutableList<ShipPlacementRequest>> = mutableMapOf(),
@@ -24,9 +22,11 @@ class GameAdministrationService(
 ) {
     fun processStepsFile(path: String): ProcessingResult {
         val file = File(path)
+
         if (!file.exists()) {
             return ProcessingResult(listOf("ERROR: Steps file does not exist: $path"))
         }
+
         val lines =
             try {
                 file.readLines()
@@ -35,6 +35,7 @@ class GameAdministrationService(
                     listOf("ERROR: Could not read steps file ($path): ${e.message ?: e.javaClass.simpleName}"),
                 )
             }
+
         return processLines(lines)
     }
 
@@ -46,6 +47,7 @@ class GameAdministrationService(
 
         for (sourceLine in lines) {
             val line = sourceLine.trim()
+
             if (line.isEmpty()) {
                 continue
             }
@@ -93,6 +95,7 @@ class GameAdministrationService(
 
         val nickname = parts[1]
         val player = playerService.addPlayer(nickname)
+
         context.players[player.nickname] = player
 
         logs.add("Player registered: ${player.nickname}")
@@ -126,20 +129,37 @@ class GameAdministrationService(
 
         val placement = ShipPlacementRequest(x, y, direction, size)
 
-        val placedShipsByNickname =
-            context.placementsByNickname
-                .getOrPut(nickname) { mutableListOf() }
+        return registerPlacementForNickname(
+            nickname, placement,
+            context, logs,
+            lineNumber, x, y,
+            direction, size,
+        )
+    }
 
+    private fun registerPlacementForNickname(
+        nickname: String,
+        placement: ShipPlacementRequest,
+        context: AdminContext,
+        logs: MutableList<String>,
+        lineNumber: Int,
+        x: Int,
+        y: Int,
+        direction: String,
+        size: Int,
+    ): String? {
+        val placedShipsByNickname =
+            context.placementsByNickname.getOrPut(nickname) {
+                mutableListOf()
+            }
         val updatedPlacement = placedShipsByNickname + placement
 
         val (layoutCorrect, _) = gameService.addShips(updatedPlacement)
-
         if (!layoutCorrect) {
             return "Invalid placement for $nickname on line $lineNumber (off board, overlapping, or too close)"
         }
 
         placedShipsByNickname.add(placement)
-
         logs.add("Placement accepted for $nickname: ($x,$y) $direction size=$size")
 
         return null
@@ -172,14 +192,25 @@ class GameAdministrationService(
         val ships1 = gameService.addShips(placements1).second
         val ships2 = gameService.addShips(placements2).second
 
+        assignStartedGame(p1, p2, ships1, ships2, context, logs)
+
+        return null
+    }
+
+    private fun assignStartedGame(
+        p1: Player,
+        p2: Player,
+        ships1: List<domain.ship.ShipImpl>,
+        ships2: List<domain.ship.ShipImpl>,
+        context: AdminContext,
+        logs: MutableList<String>,
+    ) {
         context.firstPlayer = p1
         context.secondPlayer = p2
 
         context.game = gameService.startGame(p1, p2, ships1, ships2)
 
         logs.add("Game started: ${p1.nickname} vs ${p2.nickname}")
-
-        return null
     }
 
     private fun handleShot(
@@ -199,11 +230,22 @@ class GameAdministrationService(
 
         val events = game.makeMove(Coords(x, y))
 
+        appendShotEventsToLogsAndUpdateStats(events, context, logs)
+
+        return null
+    }
+
+    private fun appendShotEventsToLogsAndUpdateStats(
+        events: List<GameEvent>,
+        context: AdminContext,
+        logs: MutableList<String>,
+    ) {
         for (event in events) {
             logs.add(event.output())
 
             if (event is GameEvent.GameFinished) {
                 val winner = event.winnerNickname
+
                 val loser =
                     when (winner) {
                         context.firstPlayer?.nickname -> context.secondPlayer?.nickname
@@ -216,7 +258,5 @@ class GameAdministrationService(
                 }
             }
         }
-
-        return null
     }
 }
