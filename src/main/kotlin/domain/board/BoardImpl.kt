@@ -1,13 +1,13 @@
 package domain.board
 
-import domain.value.Coords
 import domain.game.event.ShotResult
 import domain.ship.Ship
+import domain.value.Coords
 
 class BoardImpl(
     private val ships: List<Ship>,
     private val width: Int = 10,
-    private val height: Int = 10
+    private val height: Int = 10,
 ) : Board {
     private val shots = mutableSetOf<Coords>()
 
@@ -23,13 +23,12 @@ class BoardImpl(
 
     override fun isOutOfBounds(coords: Coords): Boolean {
         return coords.x < 0 ||
-                coords.y < 0 ||
-                coords.x >= width ||
-                coords.y >= height
+            coords.y < 0 ||
+            coords.x >= width ||
+            coords.y >= height
     }
 
-    override fun allShipsSunk(): Boolean =
-        ships.all { it.isSunk() }
+    override fun allShipsSunk(): Boolean = ships.all { it.isSunk() }
 
     override fun getShips(): List<Ship> = ships
 }

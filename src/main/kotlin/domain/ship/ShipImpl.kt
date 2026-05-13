@@ -3,7 +3,7 @@ package domain.ship
 import domain.value.Coords
 
 class ShipImpl(
-    private val cells: Set<Coords>
+    private val cells: Set<Coords>,
 ) : Ship {
     private val hits = mutableSetOf<Coords>()
 
@@ -15,8 +15,7 @@ class ShipImpl(
         return false
     }
 
-    override fun isSunk(): Boolean =
-        hits.containsAll(cells)
+    override fun isSunk(): Boolean = hits.containsAll(cells)
 
     override fun getCells(): Set<Coords> = cells
 }

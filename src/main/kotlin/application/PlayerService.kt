@@ -4,7 +4,6 @@ import domain.model.Player
 import java.util.UUID
 
 class PlayerService {
-
     private val players = mutableListOf<Player>()
 
     fun addPlayer(nickname: String): Player {

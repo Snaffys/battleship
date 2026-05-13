@@ -1,16 +1,16 @@
 package domain.game
 
-import domain.model.Player
 import domain.board.Board
-import domain.value.Coords
-import domain.game.event.ShotResult
 import domain.game.event.GameEvent
+import domain.game.event.ShotResult
+import domain.model.Player
+import domain.value.Coords
 
 class GameImpl(
     private val player1: Player,
     private val player2: Player,
     private val board1: Board,
-    private val board2: Board
+    private val board2: Board,
 ) : Game {
     private var currentPlayer: Player = player1
 
@@ -22,13 +22,13 @@ class GameImpl(
 
         if (opponentBoard.isOutOfBounds(coords)) {
             return listOf(
-                GameEvent.InvalidMove("Shot is out of board bounds")
+                GameEvent.InvalidMove("Shot is out of board bounds"),
             )
         }
 
         if (opponentBoard.isAlreadyShot(coords)) {
             return listOf(
-                GameEvent.InvalidMove("Already shot here")
+                GameEvent.InvalidMove("Already shot here"),
             )
         }
 
@@ -40,14 +40,14 @@ class GameImpl(
             GameEvent.MoveMade(
                 coords = coords,
                 result = result,
-                playerNickname = currentPlayer.nickname
-            )
+                playerNickname = currentPlayer.nickname,
+            ),
         )
 
         val isSunkAfter = opponentBoard.getShips().count { it.isSunk() }
         if (isSunkAfter > wasSunkBefore) {
             events.add(
-                GameEvent.ShipSunk(currentPlayer.nickname)
+                GameEvent.ShipSunk(currentPlayer.nickname),
             )
         }
 
@@ -57,16 +57,16 @@ class GameImpl(
 
             events.add(
                 GameEvent.PlayerSwitched(
-                    nextPlayerNickname = currentPlayer.nickname
-                )
+                    nextPlayerNickname = currentPlayer.nickname,
+                ),
             )
         }
 
         if (opponentBoard.allShipsSunk()) {
             events.add(
                 GameEvent.GameFinished(
-                    winnerNickname = currentPlayer.nickname
-                )
+                    winnerNickname = currentPlayer.nickname,
+                ),
             )
 
             return events

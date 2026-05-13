@@ -6,22 +6,22 @@ sealed class GameEvent {
     data class MoveMade(
         val coords: Coords,
         val result: ShotResult,
-        val playerNickname: String
+        val playerNickname: String,
     ) : GameEvent()
 
     data class PlayerSwitched(
-        val nextPlayerNickname: String
+        val nextPlayerNickname: String,
     ) : GameEvent()
 
     data class GameFinished(
-        val winnerNickname: String
+        val winnerNickname: String,
     ) : GameEvent()
 
     data class ShipSunk(
-        val playerNickname: String
+        val playerNickname: String,
     ) : GameEvent()
 
     data class InvalidMove(
-        val reason: String
+        val reason: String,
     ) : GameEvent()
 }

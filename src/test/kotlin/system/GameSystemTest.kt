@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
 class GameSystemTest {
-
     @Test
     fun `full game flow should work`() {
         val playerService = PlayerService()
@@ -17,13 +16,15 @@ class GameSystemTest {
         val p1 = playerService.addPlayer("A")
         val p2 = playerService.addPlayer("B")
 
-        val ships1 = listOf(
-            ShipPlacementRequest(1, 1, "H", 1)
-        )
+        val ships1 =
+            listOf(
+                ShipPlacementRequest(1, 1, "H", 1),
+            )
 
-        val ships2 = listOf(
-            ShipPlacementRequest(2, 2, "H", 1)
-        )
+        val ships2 =
+            listOf(
+                ShipPlacementRequest(2, 2, "H", 1),
+            )
 
         val (ok1, s1) = gameService.addShips(ships1)
         val (ok2, s2) = gameService.addShips(ships2)
@@ -44,11 +45,12 @@ class GameSystemTest {
     fun `invalid ship placement should fail`() {
         val gameService = GameService()
 
-        val result = gameService.addShips(
-            listOf(
-                ShipPlacementRequest(0, 0, "X", 3)
+        val result =
+            gameService.addShips(
+                listOf(
+                    ShipPlacementRequest(0, 0, "X", 3),
+                ),
             )
-        )
 
         assertTrue(!result.first)
     }
@@ -57,12 +59,13 @@ class GameSystemTest {
     fun `overlapping ships should fail`() {
         val gameService = GameService()
 
-        val result = gameService.addShips(
-            listOf(
-                ShipPlacementRequest(0, 0, "H", 3),
-                ShipPlacementRequest(1, 0, "V", 3)
+        val result =
+            gameService.addShips(
+                listOf(
+                    ShipPlacementRequest(0, 0, "H", 3),
+                    ShipPlacementRequest(1, 0, "V", 3),
+                ),
             )
-        )
 
         assertTrue(!result.first)
     }

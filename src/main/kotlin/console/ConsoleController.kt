@@ -1,13 +1,13 @@
 package console
 
-import domain.model.Player
-import domain.game.Game
 import application.GameService
 import application.PlayerService
-import domain.value.Coords
-import domain.ship.ShipImpl
-import domain.game.event.GameEvent
 import application.ShipPlacementRequest
+import domain.game.Game
+import domain.game.event.GameEvent
+import domain.model.Player
+import domain.ship.ShipImpl
+import domain.value.Coords
 
 class ConsoleController {
     val playerService = PlayerService()
@@ -94,7 +94,10 @@ class ConsoleController {
         }
     }
 
-    private fun placeShips(name: String, shipSizes: List<Int>): List<ShipImpl> {
+    private fun placeShips(
+        name: String,
+        shipSizes: List<Int>,
+    ): List<ShipImpl> {
         while (true) {
             val placements = mutableListOf<ShipPlacementRequest>()
             for (size in shipSizes) {
