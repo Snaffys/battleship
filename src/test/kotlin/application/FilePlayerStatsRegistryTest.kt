@@ -5,6 +5,10 @@ import java.nio.file.Files
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+/**
+ * Covers [FilePlayerStatsRegistry.load] and [FilePlayerStatsRegistry.save], including CSV ordering
+ * and row parsing implemented in private helpers.
+ */
 class FilePlayerStatsRegistryTest {
     @Test
     fun `save and load should persist player stats`() {
@@ -50,5 +54,21 @@ class FilePlayerStatsRegistryTest {
         assertEquals(2, loaded.size)
         assertEquals(PlayerStats(1, 1, 0), loaded["Good"])
         assertEquals(PlayerStats(2, 0, 2), loaded["AlsoGood"])
+    }
+
+    @Test
+    fun `save should order rows by nickname ignoring case`() {
+        val tempFile = Files.createTempFile("battleshipSort", ".csv")
+        val registry = FilePlayerStatsRegistry(tempFile)
+        registry.save(
+            mapOf(
+                "bob" to PlayerStats(1, 0, 1),
+                "Alice" to PlayerStats(2, 1, 1),
+            ),
+        )
+        val rows = Files.readAllLines(tempFile)
+        assertEquals("nickname;games;wins;losses", rows[0])
+        assertEquals("Alice;2;1;1", rows[1])
+        assertEquals("bob;1;0;1", rows[2])
     }
 }

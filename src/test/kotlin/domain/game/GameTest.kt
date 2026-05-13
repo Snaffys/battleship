@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+/**
+ * Covers [GameImpl.makeMove]; private helpers on [GameImpl] are exercised only through this API.
+ */
 class GameTest {
     private val p1 = Player("A")
     private val p2 = Player("B")

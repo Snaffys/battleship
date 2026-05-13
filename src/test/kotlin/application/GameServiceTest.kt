@@ -6,7 +6,20 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+/**
+ * Covers [GameService.addShips], including placement layout rules implemented in private helpers.
+ */
 class GameServiceTest {
+    @Test
+    fun `addShips should fail when ship size is zero`() {
+        val service = GameService()
+
+        val (correct, ships) = service.addShips(listOf(ShipPlacementRequest(0, 0, "H", 0)))
+
+        assertFalse(correct)
+        assertTrue(ships.isEmpty())
+    }
+
     @Test
     fun `addShips should fail when ship goes out of bounds horizontally`() {
         val service = GameService()
