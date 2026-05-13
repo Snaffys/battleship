@@ -105,6 +105,8 @@ class BattleshipConsoleMainSystemTest {
             runConsole(
                 listOf(
                     "help",
+                    "add Player1",
+                    "add Player2",
                     "add Player3",
                     "list",
                     "exit",
@@ -113,9 +115,9 @@ class BattleshipConsoleMainSystemTest {
 
         assertTrue(output.contains("Console administration mode"), output)
         assertTrue(output.contains("Commands: add <nickname>"), output)
+        assertTrue(output.contains("Added player: Player1"), output)
+        assertTrue(output.contains("Added player: Player2"), output)
         assertTrue(output.contains("Added player: Player3"), output)
-        assertTrue(output.contains("Player1"), output)
-        assertTrue(output.contains("Player2"), output)
     }
 
     @Test
