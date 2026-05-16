@@ -80,7 +80,9 @@ class GameAdministrationServiceTest {
 
     @Test
     fun `processLines should fail on invalid placement`() {
-        val service = GameAdministrationService()
+        val registry = InMemoryRegistry()
+        val playerService = PlayerService(registry)
+        val service = GameAdministrationService(playerService)
         val lines =
             listOf(
                 "PLAYER a",
