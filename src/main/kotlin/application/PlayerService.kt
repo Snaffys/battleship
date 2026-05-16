@@ -1,18 +1,20 @@
 package application
 
 import domain.model.Player
+import persistence.DbPaths
+import persistence.GameHistoryStorage
+import persistence.Storage
 
 class PlayerService(
-    private val registry: PlayerStatsRegistry = FilePlayerStatsRegistry(),
+    private val registry: PlayerStatsRegistry =
+        Storage(DbPaths.defaultDbPath()),
 ) {
     private val players = mutableListOf<Player>()
     private val stats = mutableMapOf<String, PlayerStats>()
 
     init {
-        val loaded = registry.load()
-        for ((nickname, playerStats) in loaded) {
-            val player = Player(nickname)
-            players.add(player)
+        for ((nickname, playerStats) in registry.load()) {
+            addToMemoryIfAbsent(nickname)
             stats[nickname] = playerStats
         }
     }
@@ -35,6 +37,8 @@ class PlayerService(
     fun recordGameResult(
         winnerNickname: String,
         loserNickname: String,
+        firstPlayerNickname: String? = null,
+        secondPlayerNickname: String? = null,
     ) {
         val winner = addPlayer(winnerNickname)
         val loser = addPlayer(loserNickname)
@@ -52,6 +56,14 @@ class PlayerService(
                 games = loserStats.games + 1,
                 losses = loserStats.losses + 1,
             )
+
+        if (firstPlayerNickname != null && secondPlayerNickname != null) {
+            (registry as? GameHistoryStorage)?.addFinishedGame(
+                firstPlayerNickname,
+                secondPlayerNickname,
+                winner.nickname,
+            )
+        }
 
         save()
     }
@@ -80,5 +92,11 @@ class PlayerService(
 
     private fun save() {
         registry.save(stats)
+    }
+
+    private fun addToMemoryIfAbsent(nickname: String) {
+        if (players.none { it.nickname.equals(nickname, true) }) {
+            players.add(Player(nickname))
+        }
     }
 }
