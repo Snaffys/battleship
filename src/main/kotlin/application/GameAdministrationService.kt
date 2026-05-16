@@ -6,7 +6,9 @@ import domain.model.Player
 import domain.value.Coords
 import java.io.File
 
-data class ProcessingResult(val logLines: List<String>)
+data class ProcessingResult(
+    val logLines: List<String>,
+)
 
 private data class AdminContext(
     val placementsByNickname: MutableMap<String, MutableList<ShipPlacementRequest>> = mutableMapOf(),
@@ -97,7 +99,6 @@ class GameAdministrationService(
         val player = playerService.addPlayer(nickname)
 
         context.players[player.nickname] = player
-
         logs.add("Player registered: ${player.nickname}")
 
         return null
@@ -129,29 +130,10 @@ class GameAdministrationService(
 
         val placement = ShipPlacementRequest(x, y, direction, size)
 
-        return registerPlacementForNickname(
-            nickname, placement,
-            context, logs,
-            lineNumber, x, y,
-            direction, size,
-        )
-    }
-
-    private fun registerPlacementForNickname(
-        nickname: String,
-        placement: ShipPlacementRequest,
-        context: AdminContext,
-        logs: MutableList<String>,
-        lineNumber: Int,
-        x: Int,
-        y: Int,
-        direction: String,
-        size: Int,
-    ): String? {
         val placedShipsByNickname =
-            context.placementsByNickname.getOrPut(nickname) {
-                mutableListOf()
-            }
+            context.placementsByNickname
+                .getOrPut(nickname) { mutableListOf() }
+
         val updatedPlacement = placedShipsByNickname + placement
 
         val (layoutCorrect, _) = gameService.addShips(updatedPlacement)
@@ -160,6 +142,7 @@ class GameAdministrationService(
         }
 
         placedShipsByNickname.add(placement)
+
         logs.add("Placement accepted for $nickname: ($x,$y) $direction size=$size")
 
         return null
@@ -182,7 +165,7 @@ class GameAdministrationService(
         val p1 = context.players[parts[1]] ?: playerService.addPlayer(parts[1])
         val p2 = context.players[parts[2]] ?: playerService.addPlayer(parts[2])
 
-        if (p1.nickname.equals(p2.nickname, ignoreCase = true)) {
+        if (p1.nickname.equals(p2.nickname, true)) {
             return "Players must be different"
         }
 
@@ -192,25 +175,14 @@ class GameAdministrationService(
         val ships1 = gameService.addShips(placements1).second
         val ships2 = gameService.addShips(placements2).second
 
-        assignStartedGame(p1, p2, ships1, ships2, context, logs)
-
-        return null
-    }
-
-    private fun assignStartedGame(
-        p1: Player,
-        p2: Player,
-        ships1: List<domain.ship.ShipImpl>,
-        ships2: List<domain.ship.ShipImpl>,
-        context: AdminContext,
-        logs: MutableList<String>,
-    ) {
         context.firstPlayer = p1
         context.secondPlayer = p2
 
         context.game = gameService.startGame(p1, p2, ships1, ships2)
 
         logs.add("Game started: ${p1.nickname} vs ${p2.nickname}")
+
+        return null
     }
 
     private fun handleShot(
@@ -230,22 +202,11 @@ class GameAdministrationService(
 
         val events = game.makeMove(Coords(x, y))
 
-        appendShotEventsToLogsAndUpdateStats(events, context, logs)
-
-        return null
-    }
-
-    private fun appendShotEventsToLogsAndUpdateStats(
-        events: List<GameEvent>,
-        context: AdminContext,
-        logs: MutableList<String>,
-    ) {
         for (event in events) {
             logs.add(event.output())
 
             if (event is GameEvent.GameFinished) {
                 val winner = event.winnerNickname
-
                 val loser =
                     when (winner) {
                         context.firstPlayer?.nickname -> context.secondPlayer?.nickname
@@ -254,9 +215,16 @@ class GameAdministrationService(
                     }
 
                 if (loser != null) {
-                    playerService.recordGameResult(winner, loser)
+                    playerService.recordGameResult(
+                        winner,
+                        loser,
+                        context.firstPlayer?.nickname,
+                        context.secondPlayer?.nickname,
+                    )
                 }
             }
         }
+
+        return null
     }
 }
