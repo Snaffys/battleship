@@ -41,8 +41,8 @@ private class BattleshipGuiScreen(
         frame.minimumSize = Dimension(960, 800)
         frame.layout = BorderLayout()
 
-        playersList.font = Font(Font.SANS_SERIF, Font.PLAIN, 18)
-        logArea.font = Font(Font.MONOSPACED, Font.PLAIN, 16)
+        playersList.font = Font(Font.SANS_SERIF, Font.PLAIN, 34)
+        logArea.font = Font(Font.MONOSPACED, Font.PLAIN, 30)
 
         frame.add(buildLeft(), BorderLayout.WEST)
         frame.add(buildRight(), BorderLayout.CENTER)
@@ -64,8 +64,8 @@ private class BattleshipGuiScreen(
         val inputField = JTextField()
         val addBtn = JButton("Add player")
 
-        inputField.font = Font(Font.SANS_SERIF, Font.PLAIN, 18)
-        addBtn.font = Font(Font.SANS_SERIF, Font.BOLD, 18)
+        inputField.font = Font(Font.SANS_SERIF, Font.PLAIN, 28)
+        addBtn.font = Font(Font.SANS_SERIF, Font.BOLD, 28)
 
         addPanel.add(inputField, BorderLayout.CENTER)
         addPanel.add(addBtn, BorderLayout.EAST)
@@ -88,10 +88,10 @@ private class BattleshipGuiScreen(
         val filePanel = JPanel(BorderLayout())
         val fileLabel = javax.swing.JLabel("Steps file:")
 
-        fileLabel.font = Font(Font.SANS_SERIF, Font.BOLD, 16)
-        filePathField.font = Font(Font.MONOSPACED, Font.PLAIN, 15)
+        fileLabel.font = Font(Font.SANS_SERIF, Font.BOLD, 32)
+        filePathField.font = Font(Font.MONOSPACED, Font.PLAIN, 20)
 
-        processFileButton.font = Font(Font.SANS_SERIF, Font.BOLD, 18)
+        processFileButton.font = Font(Font.SANS_SERIF, Font.BOLD, 32)
         processFileButton.addActionListener { processStepsFile() }
 
         filePanel.add(fileLabel, BorderLayout.NORTH)
@@ -106,7 +106,7 @@ private class BattleshipGuiScreen(
         panel.border = BorderFactory.createEmptyBorder(8, 8, 8, 8)
 
         val title = javax.swing.JLabel("Processed moves and events")
-        title.font = Font(Font.SANS_SERIF, Font.BOLD, 18)
+        title.font = Font(Font.SANS_SERIF, Font.BOLD, 32)
 
         logArea.isEditable = false
         logArea.lineWrap = true
