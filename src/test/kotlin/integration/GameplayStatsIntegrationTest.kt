@@ -45,7 +45,7 @@ class GameplayStatsIntegrationTest {
 
         val winnerName = finished.winnerNickname
         val loserName = "Bob"
-        playerService.recordGameResult(winnerName, loserName)
+        playerService.recordGameResult(winnerName, loserName, "Alice", "Bob")
 
         assertEquals(PlayerStats(1, 1, 0), playerService.getStats("Alice"))
         assertEquals(PlayerStats(1, 0, 1), playerService.getStats("Bob"))

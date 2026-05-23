@@ -20,8 +20,10 @@ fun runBattleshipGui() {
 }
 
 private class BattleshipGuiScreen(
-    private val controller: BattleshipGuiController = BattleshipGuiController(),
-    private val administrationService: application.GameAdministrationService = application.GameAdministrationService(),
+    private val playerService: application.PlayerService = application.PlayerService(),
+    private val controller: BattleshipGuiController = BattleshipGuiController(playerService),
+    private val administrationService: application.GameAdministrationService =
+        application.GameAdministrationService(playerService),
 ) {
     private val frame = JFrame("Battleship")
     private val playersModel = DefaultListModel<String>()
