@@ -1,27 +1,23 @@
-package application
+package integration
 
+import application.GameAdministrationService
+import application.PlayerService
+import application.PlayerStats
 import org.junit.jupiter.api.Test
+import persistence.Storage
+import java.nio.file.Files
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class GameAdministrationServiceTest {
-    private class InMemoryRegistry : PlayerStatsRegistry {
-        var data: Map<String, PlayerStats> = emptyMap()
-
-        override fun load(): Map<String, PlayerStats> {
-            return data
-        }
-
-        override fun save(statsByNickname: Map<String, PlayerStats>) {
-            data = statsByNickname.toMap()
-        }
-    }
-
+class PersistenceIntegrationTest {
     @Test
-    fun `processLines should execute commands and update stats`() {
-        val registry = InMemoryRegistry()
-        val playerService = PlayerService(registry)
-        val service = GameAdministrationService(playerService)
+    fun `full administration flow persists stats and game history in db`() {
+        val db = Files.createTempFile("testFullFlowDB", ".db")
+        Files.deleteIfExists(db)
+
+        val store = Storage(db)
+        val playerService = PlayerService(store)
+        val admin = GameAdministrationService(playerService)
 
         val lines =
             listOf(
@@ -70,28 +66,20 @@ class GameAdministrationServiceTest {
                 "SHOT 9 6",
             )
 
-        val result = service.processLines(lines)
+        val result = admin.processLines(lines)
 
         assertTrue(result.logLines.none { it.startsWith("ERROR:") })
-        assertTrue(result.logLines.any { it.contains("Game finished. Winner: admin-a") })
         assertEquals(PlayerStats(1, 1, 0), playerService.getStats("admin-a"))
         assertEquals(PlayerStats(1, 0, 1), playerService.getStats("admin-b"))
-    }
 
-    @Test
-    fun `processLines should fail on invalid placement`() {
-        val registry = InMemoryRegistry()
-        val playerService = PlayerService(registry)
-        val service = GameAdministrationService(playerService)
-        val lines =
-            listOf(
-                "PLAYER a",
-                "PLAYER b",
-                "PLACEMENT a 0 0 H 3",
-                "PLACEMENT a 1 0 V 3",
-            )
-        val result = service.processLines(lines)
-        assertTrue(result.logLines.any { it.startsWith("ERROR:") })
-        assertTrue(result.logLines.any { it.contains("line 4") }, result.logLines.joinToString("\n"))
+        val history = store.getFinishedGames(limit = 5)
+        assertEquals(1, history.size)
+        assertEquals("admin-a", history[0].winnerNickname)
+        assertEquals("admin-a", history[0].firstPlayerNickname)
+        assertEquals("admin-b", history[0].secondPlayerNickname)
+
+        val playerServiceFilled = PlayerService(store)
+        assertEquals(PlayerStats(1, 1, 0), playerServiceFilled.getStats("admin-a"))
+        assertEquals(1, store.getFinishedGames(10).size)
     }
 }

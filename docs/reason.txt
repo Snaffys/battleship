@@ -1,0 +1,1 @@
+The UML diagram was updated to include the database component and additional object attributes to improve understanding.

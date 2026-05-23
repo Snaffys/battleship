@@ -56,9 +56,18 @@ class BattleshipConsoleMainSystemTest {
             )
     }
 
+    private fun createTestDBFile(): File {
+        val dbFile = File.createTempFile("battleshipTest", ".db")
+        if (dbFile.exists()) {
+            dbFile.delete()
+        }
+        return dbFile
+    }
+
     private fun runConsole(
         commands: List<String>,
         delayMs: Long = 200,
+        dbFile: File = createTestDBFile(),
     ): String {
         val classpath =
             System.getProperty("battleship.test.runtime.classpath")
@@ -71,6 +80,7 @@ class BattleshipConsoleMainSystemTest {
         val process =
             ProcessBuilder(
                 javaBin,
+                "-Dbattleship.db.path=${dbFile.absolutePath}",
                 "-cp",
                 classpath,
                 "app.MainKt",
@@ -101,6 +111,8 @@ class BattleshipConsoleMainSystemTest {
 
     @Test
     fun `help, add, list, exit session`() {
+        val dbFile = createTestDBFile()
+
         val output =
             runConsole(
                 listOf(
@@ -111,6 +123,8 @@ class BattleshipConsoleMainSystemTest {
                     "list",
                     "exit",
                 ),
+                200,
+                dbFile,
             )
 
         assertTrue(output.contains("Console administration mode"), output)
@@ -118,11 +132,13 @@ class BattleshipConsoleMainSystemTest {
         assertTrue(output.contains("Added player: Player1"), output)
         assertTrue(output.contains("Added player: Player2"), output)
         assertTrue(output.contains("Added player: Player3"), output)
+        assertTrue(dbFile.exists() && dbFile.length() > 0L, "DB file should be written after player added")
     }
 
     @Test
     fun `full game run and produce winner`() {
         val gameFile = File.createTempFile("game", ".txt")
+        val dbFile = createTestDBFile()
 
         gameFile.writeText(fullGameLines.joinToString("\n"))
 
@@ -133,10 +149,12 @@ class BattleshipConsoleMainSystemTest {
                     "exit",
                 ),
                 5000,
+                dbFile,
             )
 
         assertTrue(!output.contains("ERROR:"), output)
         assertTrue(output.contains("Game started: admin-a vs admin-b"), output)
         assertTrue(output.contains("Game finished. Winner: admin-a"), output)
+        assertTrue(dbFile.exists() && dbFile.length() > 0L, "DB file should be written after game finished")
     }
 }
