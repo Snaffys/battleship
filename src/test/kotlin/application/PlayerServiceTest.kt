@@ -2,6 +2,8 @@ package application
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import persistence.Storage
+import java.nio.file.Files
 import kotlin.test.assertTrue
 
 class PlayerServiceTest {
@@ -62,5 +64,21 @@ class PlayerServiceTest {
         val rows = service.getLeaderboard()
         assertEquals("High", rows[0].nickname)
         assertEquals("Low", rows[1].nickname)
+    }
+
+    @Test
+    fun `recordGameResult writes game history in db`() {
+        val db = Files.createTempFile("testGameHistory", ".db")
+        Files.deleteIfExists(db)
+        val storage = Storage(db)
+        val service = PlayerService(storage)
+
+        service.addPlayer("A")
+        service.addPlayer("B")
+        service.recordGameResult("A", "B", "A", "B")
+
+        val games = storage.getFinishedGames(5)
+        assertEquals(1, games.size)
+        assertEquals("A", games[0].winnerNickname)
     }
 }
