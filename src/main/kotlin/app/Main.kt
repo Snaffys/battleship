@@ -1,7 +1,12 @@
 package app
 
 import console.runBattleshipConsole
+import gui.runBattleshipGui
 
-fun main() {
-    runBattleshipConsole()
+fun main(args: Array<String>) {
+    if (args.contains("--console")) {
+        runBattleshipConsole()
+    } else {
+        runBattleshipGui()
+    }
 }
